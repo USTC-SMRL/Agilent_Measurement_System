@@ -46,6 +46,7 @@ for i = 1:nargin-4
     end
 end           
 
+
 % Connect the TCPIP object to the host.
 try
     f = tcpip(ip_address, port);
@@ -73,16 +74,18 @@ if (~isempty(f) && strcmp(f.Status, 'closed'))
 end;
 
 
-
 % Configure the signal analyzer using parameters given, only related settings are configured, other settings should be configured manually at the start of the whole measurement.
 % Configure input/output related settings.
+xfprintf(f, ':INITiate:CONTinuous OFF');                                    % Set analyzer in analyzer in single measurement operation.
 xfprintf(f, [':INPut:COUPling ', coupl]);                                   % Configure RF Coupling to 'coupl', only AC or DC is available.
+
 
 % Configure Y axis related settings.
 xfprintf(f, ':SENSe:POWer:RF:ATTenuation:AUTO ON');                         % Configure mechanical attenuator to be auto coupled
 xfprintf(f, ':SENSe:POWer:RF:ATTenuation:STEP:INCRement 2 dB');             % to reference level with a step of 2 dB.
 xfprintf(f, ':UNIT:POW dBm');                                               % Configure power unit to 'dBm'.
 xfprintf(f, [':DISPlay:WINDow1:TRACe:Y:SCALe:RLEVel ', num2str(refLevel),' dBm']);  % Configure power reference to specified level.
+
 
 % Configure X axis related settings.
 xfprintf(f, [':SENSe:FREQuency:CENTer ', num2str(centFreq/1E6, '%7.6f'), ' MHz']);  % Configure center frequency to 'centFreq'. 'centFreq' is in Hz,
@@ -94,7 +97,10 @@ xfprintf(f, [':SENSe:FREQuency:SPAN ', num2str(span_initial/1E3, '%4.3f'), ' KHz
 xfprintf(f, [':SENSe:BANDwidth:RESolution ', num2str(RBW_initial),' Hz']);  % Configure resolution bandwidth to 'RBW_initial', in Hz.
 xfprintf(f, [':SENSe:BANDwidth:VIDeo ', num2str(VBW_initial),' Hz']);       % Configure video bandwidth to 'VBW_initial', in Hz.
 
-pause(0.5);                                                                   % Pause for two seconds for the instrument to acquire and process data.
+
+% Initiate a sweep before first measurement.
+xfprintf(f, ':INITiate:IMMediate');                                         % Initiate a sweep after all commands are completed.
+xfprintf(f, '*WAI');                                                        % Wait until all overlapped commands are completed.
 
 
 % Measure peak power in specified frequency range.
@@ -106,7 +112,7 @@ xfprintf(f, ':CALCulate:MARKer:PEAK:THReshold:STATe OFF');
 xfprintf(f, ':CALCulate:MARKer1:MAXimum');
 xfprintf(f, ':CALCulate:MARKer1:SET:CENTer');
 xfprintf(f, ':CALCulate:MARKer1:CPSearch:STATe ON');
- 
+
 
 % Reconfigure span and RBW, VBW for accurate measurement.
 xfprintf(f, [':SENSe:FREQuency:SPAN ', num2str(span/1E3, '%4.3f'), ' KHz']);  % Configure span frequency to 'span'. 'span' is in Hz, and the command converts it to KHz.
@@ -115,7 +121,11 @@ xfprintf(f, [':SENSe:FREQuency:SPAN ', num2str(span/1E3, '%4.3f'), ' KHz']);  % 
 xfprintf(f, [':SENSe:BANDwidth:RESolution ', num2str(RBW),' Hz']);          % Configure resolution bandwidth to 'RBW', in Hz.
 xfprintf(f, [':SENSe:BANDwidth:VIDeo ', num2str(VBW),' Hz']);               % Configure video bandwidth to 'VBW', in Hz.
 
-pause(2);                                                                   % Pause for two seconds for the instrument to acquire and process data.
+ 
+% Initiate a sweep before second measurement.
+xfprintf(f, ':INITiate:IMMediate');                                         % Initiate a sweep after all commands are completed.
+xfprintf(f, '*WAI');                                                        % Wait until all overlapped commands are completed.
+
 
 % Flush input buffer before measurement.
 flushinput(f);
@@ -127,17 +137,23 @@ Power_onepass  = query(f, ':CALCulate:DATA1:COMPress? MAXimum');
 % thus optimize mechanical attenuator.
 xfprintf(f, [':DISPlay:WINDow1:TRACe:Y:SCALe:RLEVel ', num2str(round(str2double(Power_onepass) + 4)),' dBm']);  % Configure power reference to specified level.
 
-pause(2)
+
+% Initiate a sweep before last measurement.
+xfprintf(f, ':INITiate:IMMediate');                                         % Initiate a sweep after all commands are completed.
+xfprintf(f, '*WAI');                                                        % Wait until all overlapped commands are completed.
+xfprintf(f, ':CALCulate:MARKer1:MAXimum');                                  % Perform a peak search and place the marker there.
+
 
 % Flush input buffer before measurement.
 flushinput(f);
-
 % Meausre the peak's power for the second and final pass.
-Power_secondpass  = query(f, ':CALCulate:DATA1:COMPress? MAXimum');
+Power_secondpass  = query(f, ':CALCulate:MARKer1:Y?');
 Frequency_secondpass = query(f, ':CALCulate:MARKer1:X?');
+
 
 Power = str2double(Power_secondpass);
 Frequency = str2double(Frequency_secondpass);
+
 
 fclose(f);
 end
