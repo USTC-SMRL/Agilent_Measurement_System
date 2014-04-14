@@ -121,7 +121,7 @@ xfprintf(f, [':SENSe:FREQuency:SPAN ', num2str(span/1E3, '%4.3f'), ' KHz']);  % 
 xfprintf(f, [':SENSe:BANDwidth:RESolution ', num2str(RBW),' Hz']);          % Configure resolution bandwidth to 'RBW', in Hz.
 xfprintf(f, [':SENSe:BANDwidth:VIDeo ', num2str(VBW),' Hz']);               % Configure video bandwidth to 'VBW', in Hz.
 
-
+ 
 % Initiate a sweep before second measurement.
 xfprintf(f, ':INITiate:IMMediate');                                         % Initiate a sweep after all commands are completed.
 xfprintf(f, '*WAI');                                                        % Wait until all overlapped commands are completed.
@@ -130,7 +130,7 @@ xfprintf(f, '*WAI');                                                        % Wa
 % Flush input buffer before measurement.
 flushinput(f);
 
-% Meausre the peak's power for the first pass.
+% Measure the peak's power for the first pass.
 Power_onepass  = query(f, ':CALCulate:DATA1:COMPress? MAXimum');
 
 % Optimize reference power level using power measured in the first pass,
