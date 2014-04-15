@@ -1,3 +1,5 @@
+addpath(genpath('../'));
+
 Scope.ip_address = '192.168.1.120';
 Scope.port = 5025;
 SA.ip_address = '192.168.1.130';
@@ -22,4 +24,3 @@ for ii = 1:size(FreqSet, 2);
     VoltRead(ii, 1:4) = Scope_MeasVAmp(Scope.ip_address, Scope.port);
     FreqRead(ii, 1:4) = Scope_MeasFreq(Scope.ip_address, Scope.port);
 end
-
