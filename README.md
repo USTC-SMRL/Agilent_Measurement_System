@@ -7,4 +7,4 @@ The `Instrument_Command` folder is for some common command such as **SA_MeasPow.
 
 The `Reference` folder is for some programming mannual provided by instrument manufacture.
 
-The ".m" files is the top directory is the measuring-progress-control program, using commands in the `Instrument_Command` in a certain manner and order for some general measurement purpose, an "amplitude v.s. frequency graph" for example.
+The ".m" files in the top directory are the measuring-progress-control programs, using commands in the `Instrument_Command` in a certain manner and order for some general measurement purpose, an "amplitude v.s. frequency graph" for example.
